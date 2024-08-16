@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ThemeRegistry from "@/theme/themeRegistry";
 // import { ThemeProvider } from "@mui/material";
 // import theme from "@/theme";
-import ThemeRegistry from "@/theme/themeRegistry";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,15 +14,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body className={inter.className}>
-      <ThemeRegistry options={{ key: 'mui' }}>
-          {children}
-        </ThemeRegistry>
+        <ThemeRegistry>{children}</ThemeRegistry>
       </body>
     </html>
   );

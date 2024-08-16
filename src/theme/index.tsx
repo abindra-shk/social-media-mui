@@ -9,8 +9,8 @@ import themeTypography from './typography';
 const themeOptions: ThemeOptions = {
   direction: 'ltr',
   palette: themePalette(colors), // Using the palette function
-  typography: themeTypography(colors), // Using the typography function
-  components: componentStyleOverrides(colors), // Using the component overrides function
+  // typography: themeTypography(colors), // Using the typography function
+  // components: componentStyleOverrides(colors), // Using the component overrides function
 };
 
 const theme = createTheme(themeOptions);

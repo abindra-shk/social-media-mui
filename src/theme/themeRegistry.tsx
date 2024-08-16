@@ -1,62 +1,50 @@
-"use client"
+"use client";
 
-import * as React from 'react';
-import createCache, { Options as OptionsOfCreateCache } from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
-import { useServerInsertedHTML } from 'next/navigation';
-import { ThemeProvider } from '@mui/material/styles'; // Correct import
-import theme from '.'; // Import your MUI theme
+import * as React from "react";
+import CssBaseline from "@mui/material/CssBaseline";
+import { createTheme, ThemeOptions, ThemeProvider } from "@mui/material/styles";
+import { Roboto } from "next/font/google";
+import { NextAppDirEmotionCacheProvider } from "./EmotionCache";
+import theme from ".";
+
+const roboto = Roboto({
+  weight: ["300", "400", "500", "700"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+});
+
+// const themeOptions: ThemeOptions = {
+//   typography: {
+//     fontSize: 12,
+//     fontFamily: roboto.style.fontFamily,
+//   },
+//   palette: {
+//     background: {
+//       // pink
+//       default: "#f8bbd0",
+//     },
+//     primary: {
+//       main: "#1976d2",
+//     },
+//     text: {
+//       primary: "#300000",
+//     },
+//   },
+// };
+
+// const theme = createTheme(themeOptions);
 
 export default function ThemeRegistry({
-  options,
   children,
 }: {
-  options: Omit<OptionsOfCreateCache, 'insertionPoint'>;
   children: React.ReactNode;
 }) {
-  const [{ cache, flush }] = React.useState(() => {
-    const cache = createCache(options);
-    cache.compat = true;
-    const prevInsert = cache.insert;
-    let inserted: string[] = [];
-    cache.insert = (...args) => {
-      const serialized = args[1];
-      if (cache.inserted[serialized.name] === undefined) {
-        inserted.push(serialized.name);
-      }
-      return prevInsert(...args);
-    };
-    const flush = () => {
-      const prevInserted = inserted;
-      inserted = [];
-      return prevInserted;
-    };
-    return { cache, flush };
-  });
-
-  useServerInsertedHTML(() => {
-    const names = flush();
-    if (names.length === 0) return null;
-
-    let styles = '';
-    for (const name of names) {
-      styles += cache.inserted[name];
-    }
-
-    return (
-      <style
-        key={cache.key}
-        data-emotion={`${cache.key} ${names.join(' ')}`}
-        dangerouslySetInnerHTML={{ __html: styles }}
-      />
-    );
-  });
-
   return (
-    <CacheProvider value={cache}>
-      <ThemeProvider theme={theme}> {/* Ensure theme() returns a theme object */}
+    <NextAppDirEmotionCacheProvider options={{ key: "mui" }}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
         {children}
       </ThemeProvider>
-    </CacheProvider>
+    </NextAppDirEmotionCacheProvider>
   );
 }
