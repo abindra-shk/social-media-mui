@@ -12,12 +12,12 @@ const palette = (themeColors: any): PaletteOptions => ({
     dark: themeColors.secondaryDark,
   },
   background: {
-    default: themeColors.backgroundDefault,
+    default: themeColors.paper,
     paper: themeColors.paper,
   },
   text: {
-    primary: themeColors.textPrimary,
-    secondary: themeColors.textSecondary,
+    primary: themeColors.darkTextPrimary,
+    secondary: themeColors.darkTextSecondary,
   },
 });
 

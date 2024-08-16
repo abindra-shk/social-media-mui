@@ -6,11 +6,13 @@ import themePalette from './palette';
 import themeTypography from './typography';
 
 // Generate a static theme object
+console.log('colors=====>',colors)
+
 const themeOptions: ThemeOptions = {
   direction: 'ltr',
   palette: themePalette(colors), // Using the palette function
-  // typography: themeTypography(colors), // Using the typography function
-  // components: componentStyleOverrides(colors), // Using the component overrides function
+  typography: themeTypography(colors), // Using the typography function
+  components: componentStyleOverrides(colors), // Using the component overrides function
 };
 
 const theme = createTheme(themeOptions);

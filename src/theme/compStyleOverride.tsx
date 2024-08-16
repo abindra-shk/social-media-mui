@@ -5,8 +5,9 @@ const componentStyleOverrides = (colors: any): Components => {
         MuiButton: {
             styleOverrides: {
                 root: {
+                    width:'100px',
                     borderRadius: '8px',
-                    backgroundColor: colors.primaryMain,
+                    backgroundColor: colors.secondaryMain,
                 },
             },
         },
