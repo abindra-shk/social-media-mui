@@ -10,9 +10,19 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
+import { signIn } from "next-auth/react";
+import Image from "next/image";
+
 
 const Login = () => {
   const downMD = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
+
+
+  const handleLogin = async (provider: string) => {
+    await signIn(provider, {
+      callbackUrl: "/home",
+    });
+  };
 
   return (
     <Box
@@ -47,7 +57,12 @@ const Login = () => {
                 fullWidth
                 required
               />
-              <TextField label="Password" type="password" fullWidth required />
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                required
+              />
 
               <Button
                 variant="contained"
@@ -58,7 +73,43 @@ const Login = () => {
                 Login
               </Button>
 
-              <Divider />
+              <Divider>OR</Divider>
+
+              {/* GitHub Sign-in Button */}
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="large"
+                fullWidth
+                startIcon={
+                  <Image
+                    src="/assets/images/auth/github.svg"
+                    width={24}
+                    height={24}
+                    alt="github"
+                  />
+                }
+                onClick={() => handleLogin("github")}
+              >
+                Login with GitHub
+              </Button>
+
+              <Button
+                color="primary"
+                variant="outlined"
+                fullWidth
+                startIcon={
+                  <Image
+                    src="/assets/images/auth/google.svg"
+                    width={24}
+                    height={24}
+                    alt="google"
+                  />
+                }
+                onClick={() => handleLogin("google")}
+              >
+                Login with Google
+              </Button>
 
               <Typography
                 component={Link}

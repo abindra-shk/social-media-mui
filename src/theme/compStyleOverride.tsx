@@ -1,18 +1,17 @@
-import { Components } from '@mui/material/styles';
+import { Components } from "@mui/material/styles";
 
 const componentStyleOverrides = (colors: any): Components => {
-    return {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    width:'100px',
-                    borderRadius: '8px',
-                    backgroundColor: colors.secondaryMain,
-                },
-            },
+  return {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: "8px",
+          // backgroundColor: colors.primaryMain,
         },
-        // Add other component overrides here as needed
-    };
+      },
+    },
+    // Add other component overrides here as needed
+  };
 };
 
 export default componentStyleOverrides;
