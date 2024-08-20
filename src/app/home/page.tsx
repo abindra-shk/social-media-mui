@@ -16,6 +16,7 @@ import Image from "next/image";
 
 const Home: React.FC = () => {
   const { data: session, status } = useSession();
+  console.log("session inside home====>", session);
 
   if (status === "loading") {
     return (
@@ -39,8 +40,8 @@ const Home: React.FC = () => {
     return null;
   }
 
-  // Map picture to image
-  const userImage = session.user?.picture || session.user?.image;
+  // Access the session data
+  const { user } = session;
 
   return (
     <>
@@ -50,19 +51,19 @@ const Home: React.FC = () => {
             Home
           </Typography>
 
-          {userImage && (
+          {user?.image && (
             <Image
-              src={userImage} // Using the mapped image URL
-              alt={session.user.name || "User"}
-              width={40} // Adjust width to match your design
-              height={40} // Adjust height to match your design
+              src={user?.image}
+              alt="user"
+              width={40}
+              height={40}
               className="rounded-full"
             />
           )}
 
-          <Button 
-            color="inherit" 
-            onClick={() => signOut({ callbackUrl: "/login" })} 
+          <Button
+            color="inherit"
+            onClick={() => signOut({ callbackUrl: "/login" })}
             sx={{ ml: 2 }}
           >
             Logout
@@ -75,12 +76,13 @@ const Home: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h5">
-                  Welcome, {session.user?.name}!
-                </Typography>
-                <Typography variant="body1">
-                  Email: {session.user?.email}
-                </Typography>
+                <Typography variant="h5">Welcome, {user?.name}!</Typography>
+                <Typography variant="body1">Email: {user?.email}</Typography>
+                {/* {accessToken && (
+                  <Typography variant="body2">
+                    Access Token: {accessToken}
+                  </Typography>
+                )} */}
               </CardContent>
             </Card>
           </Grid>
