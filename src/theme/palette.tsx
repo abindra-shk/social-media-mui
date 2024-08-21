@@ -16,8 +16,8 @@ const palette = (themeColors: any): PaletteOptions => ({
     paper: themeColors.paper,
   },
   text: {
-    primary: themeColors.darkTextPrimary,
-    secondary: themeColors.darkTextSecondary,
+    primary: themeColors.grey900,
+    secondary: themeColors.grey500,
   },
 });
 

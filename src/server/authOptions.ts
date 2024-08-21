@@ -3,104 +3,59 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getUserByEmail } from "@/data/users";
+import dbConnect from "@/lib/db";
+import UserModel from "@/models/user";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "Enter your email" },
-        password: { label: "Password", type: "password", placeholder: "Enter your password" },
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "Enter your email",
+        },
+        password: {
+          label: "Password",
+          type: "password",
+          placeholder: "Enter your password",
+        },
       },
-      async authorize(credentials) {
-        if (!credentials) {
-          return null;
-        }
-
-        const { email, password } = credentials;
-
+      async authorize(credentials: any): Promise<any> {
+        await dbConnect();
+        console.log("credentials in authoptions", credentials);
         try {
-          const user = await getUserByEmail(email);
+          const user = await UserModel.findOne({
+            $or: [
+              { email: credentials.email },
+              { username: credentials.email },
+            ],
+          });
+          console.log("user===>", user);
           if (!user) {
-            throw new Error("No user found with the provided email.");
+            throw new Error("No user found with this email");
           }
 
-          // Assuming you have a function to compare passwords
-          const isMatch = user.password === password;
-
-          if (!isMatch) {
-            throw new Error("Invalid password.");
+          const isPasswordCorrect = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+          if (isPasswordCorrect) {
+            return user;
+          } else {
+            throw new Error("Incorrect password");
           }
-
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
-          };
-        } catch (error) {
-          console.error("Authorization error:", error);
-          throw new Error("Authorization failed.");
+        } catch (err: any) {
+          throw new Error(err);
         }
       },
     }),
-    // CredentialsProvider({
-    //   type: 'credentials',
-    //   credentials: {},
-    //   async authorize(credentials) {
-    //     if (!credentials) return null;
-
-    //     const { email, password, deviceId } = credentials as ILoginCredential;
-    //     try {
-    //       const res = await client.mutate<{ loginWithEmailPassword: ISignInResponse }>({
-    //         mutation: LOGIN_MUTATION,
-    //         variables: {
-    //           body: {
-    //             email,
-    //             password,
-    //             deviceId
-    //           }
-    //         }
-    //       });
-
-    //       if (res?.errors) {
-    //         throw new Error(res?.errors[0].message);
-    //       }
-
-    //       if (res?.data?.loginWithEmailPassword?.token) {
-    //         const data = res.data.loginWithEmailPassword;
-
-    //         return {
-    //           id: data.user?._id || '',
-    //           user: data.user,
-    //           access_token: data.token.accessToken,
-    //           refresh_token: data.token.refreshToken,
-    //           expires_at: data.token.accessTokenExpiresIn,
-    //           emailVerified: data.user.status !== 'email_verification_pending'
-    //         };
-    //       }
-
-    //       if (res?.data?.loginWithEmailPassword?.user?.status === 'email_verification_pending') {
-    //         const data = res.data.loginWithEmailPassword;
-    //         return {
-    //           id: data?.user?._id || '',
-    //           user: data?.user,
-    //           expiry: data?.expiry,
-    //           emailVerified: false
-    //         };
-    //       }
-
-    //       return null;
-    //     } catch (error: any) {
-    //       throw new Error(error);
-    //     }
-    //   }
-    // }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -132,8 +87,9 @@ export const authOptions: NextAuthOptions = {
       // Custom sign-in logic
       return true;
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account }) {
       // Add the user, account, and profile data to the token
+     
       if (user) {
         token.id = user.id;
         token.name = user.name;

@@ -12,16 +12,30 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
-
+import { useState } from "react";
 
 const Login = () => {
   const downMD = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleLogin = async (provider: string) => {
-    await signIn(provider, {
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
       callbackUrl: "/home",
     });
+
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      // Redirect to the callback URL or home page
+      window.location.href = "/home";
+    }
   };
 
   return (
@@ -51,28 +65,44 @@ const Login = () => {
                 Login
               </Typography>
 
-              <TextField
-                label="Email Address"
-                type="email"
-                fullWidth
-                required
-              />
-              <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                required
-              />
-
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                fullWidth
-              >
-                Login
-              </Button>
-
+              <form onSubmit={handleLogin}>
+                <TextField
+                  label="Email Address"
+                  type="text"
+                  fullWidth
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    marginBottom: "15px",
+                  }}
+                />
+                <TextField
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    marginBottom: "15px",
+                  }}
+                />
+                {error && (
+                  <Typography color="error" variant="body2">
+                    {error}
+                  </Typography>
+                )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  fullWidth
+                >
+                  Login
+                </Button>
+              </form>
               <Divider>OR</Divider>
 
               {/* GitHub Sign-in Button */}
@@ -89,7 +119,7 @@ const Login = () => {
                     alt="github"
                   />
                 }
-                onClick={() => handleLogin("github")}
+                onClick={() => signIn("github", { callbackUrl: "/home" })}
               >
                 Login with GitHub
               </Button>
@@ -106,14 +136,14 @@ const Login = () => {
                     alt="google"
                   />
                 }
-                onClick={() => handleLogin("google")}
+                onClick={() => signIn("google", { callbackUrl: "/home" })}
               >
                 Login with Google
               </Button>
 
               <Typography
                 component={Link}
-                href="/register"
+                href="/signup"
                 variant="subtitle1"
                 sx={{ textDecoration: "none" }}
               >
