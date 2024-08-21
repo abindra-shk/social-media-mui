@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeRegistry from "@/theme/themeRegistry";
 import SessionWrapper from "@/components/SessionWrapper";
+import ProviderWrapper from "@/components/ProviderWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,9 +23,9 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className={inter.className}>
-        <SessionWrapper>
-          <ThemeRegistry>{children}</ThemeRegistry>
-        </SessionWrapper>
+        <ProviderWrapper>
+          {children}
+        </ProviderWrapper>
       </body>
     </html>
   );

@@ -58,7 +58,7 @@ const Register = () => {
       }}
     >
       <Grid container justifyContent="center" alignItems="center">
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={4}>
           <Box
             sx={{
               p: 4,
