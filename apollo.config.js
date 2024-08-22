@@ -1,25 +1,28 @@
 // lib/apollo-client.ts
-import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
+import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 
+// Create an HttpLink for your GraphQL endpoint
 const httpLink = new HttpLink({
-  uri: 'https://your-backend-api.com/graphql', // Replace with your GraphQL endpoint
+  uri: "http://localhost:8000/graphql", // Replace with your GraphQL endpoint
 });
 
-const authLink = setContext((_, { headers }) => {
-  // Get the authentication token from local storage if it exists
-  const token = localStorage.getItem('token');
-  // Return the headers to the context so httpLink can read them
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
-});
+// Optionally, you can add an auth link to add headers
+// const authLink = setContext((_, { headers }) => {
+//   const token = localStorage.getItem("token");
+//   return {
+//     headers: {
+//       ...headers,
+//       authorization: token ? `Bearer ${token}` : "",
+//     },
+//   };
+// });
+
+// Combine authLink and httpLink if using authLink
+// const link = authLink.concat(httpLink);
 
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link: httpLink, // Replace the string with httpLink
   cache: new InMemoryCache(),
 });
 
