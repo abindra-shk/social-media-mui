@@ -128,6 +128,7 @@ const Login = () => {
                 color="primary"
                 variant="outlined"
                 fullWidth
+                size="large"
                 startIcon={
                   <Image
                     src="/assets/images/auth/google.svg"

@@ -3,9 +3,9 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import dbConnect from "@/lib/db";
-import UserModel from "@/models/user";
-import bcrypt from "bcryptjs";
+// import dbConnect from "@/lib/db";
+// import UserModel from "@/models/user";
+// import bcrypt from "bcryptjs";
 import client from "../../apollo.config";
 import { GOOGLE_SIGNIN_MUTATION, LOGIN_MUTATION } from "@/graphql/mutations";
 
@@ -133,8 +133,8 @@ export const authOptions: NextAuthOptions = {
             return {
               id: data.user?.id || "",
               user: data.user,
-              access_token: data.accessToken,
-              refresh_token: data.refreshToken,
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
               emailVerified: data.user.isEmailVerified,
             };
           }
@@ -177,33 +177,42 @@ export const authOptions: NextAuthOptions = {
       if (providerData) {
         user.id = providerData.id;
         user.user = providerData.user;
-        user.access_token = providerData.access_token;
-        user.refresh_token = providerData.refresh_token;
+        user.accessToken = providerData.access_token;
+        user.refreshToken = providerData.refresh_token;
         return true;
       }
       return true;
     },
     async jwt({ token, user }: any) {
       console.log("user===>", user);
+      
+      // During initial sign-in, set the access and refresh tokens
       if (user) {
         const userDetail = user as ISignInResponse;
-
-        return {
-          access_token: userDetail?.accessToken,
-          refresh_token: userDetail?.refreshToken,
-          user: userDetail?.user,
-        };
+        console.log("tokenfirst===>", token);
+        
+        // Add tokens and user details to the token object
+        token.access_token = userDetail.accessToken;
+        token.refresh_token = userDetail.refreshToken;
+        token.user = userDetail.user;
       }
+    
+      // Ensure tokens are preserved on subsequent requests
+      console.log("tokensecond===>", token);
       return token;
     },
 
     async session({ session, token }: any) {
       console.log("token===>", token);
-      
-      session.user.image = token.user.profile.avatar;
-      session.user.name = token.user.userName;
-      session.user.email = token.user.email;
-      // session.user = token.user;
+
+      // session.user.image = token.user.profile.avatar;
+      // session.user.name = token.user.userName;
+      // session.user.email = token.user.email;
+      session.user = {
+        access_token: token.access_token,
+        refresh_token: token.refresh_token,
+        user: token.user,
+      };
       console.log("session===>", session);
       return session;
     },

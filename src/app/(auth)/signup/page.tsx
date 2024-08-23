@@ -15,7 +15,7 @@ import Image from 'next/image';
 import { signIn } from 'next-auth/react';
 import { useMutation } from '@apollo/client';
 import { Formik } from 'formik';
-import * as Yup from 'yup';  // For form validation
+import * as Yup from 'yup';
 import { REGISTER_MUTATION } from '@/graphql/mutations';
 
 const validationSchema = Yup.object().shape({
@@ -31,6 +31,7 @@ const validationSchema = Yup.object().shape({
 
 const Register = () => {
   const downMD = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'));
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [registerUser] = useMutation(REGISTER_MUTATION);
 
   return (
@@ -68,7 +69,10 @@ const Register = () => {
                   repeatPassword: '',
                 }}
                 validationSchema={validationSchema}
+                validateOnChange={true}
+                validateOnBlur={true}
                 onSubmit={async (values, { setSubmitting, setErrors }) => {
+                  setGeneralError(null);
                   try {
                     const { data } = await registerUser({
                       variables: {
@@ -82,11 +86,10 @@ const Register = () => {
                     });
 
                     if (data?.register) {
-                      // Registration successful, redirect to login or home page
                       window.location.href = '/login';
                     }
                   } catch (err: any) {
-                    setErrors({ submit: err.message || 'An error occurred during registration.' });
+                    setGeneralError(err.message || 'An error occurred during registration.');
                     setSubmitting(false);
                   }
                 }}
@@ -154,9 +157,9 @@ const Register = () => {
                       helperText={touched.repeatPassword && errors.repeatPassword}
                     />
 
-                    {errors.submit && (
-                      <Typography color='error' variant='body2'>
-                        {errors.submit}
+                    {generalError && (
+                      <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+                        {generalError}
                       </Typography>
                     )}
 
@@ -167,8 +170,9 @@ const Register = () => {
                       size='large'
                       fullWidth
                       disabled={isSubmitting}
+                      sx={{ mt: 2, height: '52px' }}
                     >
-                      Register
+                      {isSubmitting ? "Registering..." : "Register"}
                     </Button>
                   </form>
                 )}
@@ -198,6 +202,7 @@ const Register = () => {
                 color='primary'
                 variant='outlined'
                 fullWidth
+                size='large'
                 startIcon={
                   <Image
                     src='/assets/images/auth/google.svg'

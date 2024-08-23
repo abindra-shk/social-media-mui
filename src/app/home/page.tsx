@@ -51,9 +51,9 @@ const Home: React.FC = () => {
             Home
           </Typography>
 
-          {user?.image && (
+          {user?.user?.profile.avatar && (
             <Image
-              src={user?.image}
+              src={user?.user?.profile?.avatar}
               alt="user"
               width={40}
               height={40}
@@ -76,8 +76,12 @@ const Home: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h5">Welcome, {user?.name}!</Typography>
-                <Typography variant="body1">Email: {user?.email}</Typography>
+                <Typography variant="h5">
+                  Welcome, {user?.user?.userName}!
+                </Typography>
+                <Typography variant="body1">
+                  Email: {user?.user?.email}
+                </Typography>
                 {/* {accessToken && (
                   <Typography variant="body2">
                     Access Token: {accessToken}
