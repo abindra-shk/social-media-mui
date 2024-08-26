@@ -142,6 +142,41 @@ const Login = () => {
                 Login with Google
               </Button>
 
+              <Button
+                color="primary"
+                variant="outlined"
+                fullWidth
+                size="large"
+                startIcon={
+                  <Image
+                    src="/assets/images/auth/facebook.svg"
+                    width={24}
+                    height={24}
+                    alt="facebook"
+                  />
+                }
+                onClick={() => signIn("facebook", { callbackUrl: "/home" })}
+              >
+                Login with Facebook
+              </Button>
+              <Button
+                color="primary"
+                variant="outlined"
+                fullWidth
+                size="large"
+                startIcon={
+                  <Image
+                    src="/assets/images/auth/zoho.svg"
+                    width={24}
+                    height={24}
+                    alt="zoho"
+                  />
+                }
+                onClick={() => signIn("zoho", { callbackUrl: "/home" })}
+              >
+                Login with Zoho
+              </Button>
+
               <Typography
                 component={Link}
                 href="/signup"

@@ -53,7 +53,7 @@ const Home: React.FC = () => {
 
           {user?.user?.profile.avatar && (
             <Image
-              src={user?.user?.profile?.avatar}
+              src={user?.image}
               alt="user"
               width={40}
               height={40}
@@ -77,10 +77,11 @@ const Home: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography variant="h5">
-                  Welcome, {user?.user?.userName}!
+                Welcome, {user?.name}!
+                Welcome, {user?.user?.userName}!
                 </Typography>
                 <Typography variant="body1">
-                  Email: {user?.user?.email}
+                  Email: {user?.email}
                 </Typography>
                 {/* {accessToken && (
                   <Typography variant="body2">

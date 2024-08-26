@@ -2,6 +2,8 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
+import FacebookProvider from "next-auth/providers/facebook";
+import ZohoProvider from "next-auth/providers/zoho";
 import CredentialsProvider from "next-auth/providers/credentials";
 // import dbConnect from "@/lib/db";
 // import UserModel from "@/models/user";
@@ -48,6 +50,8 @@ const handleProvider = async (account: any) => {
       return false;
   }
 };
+
+console.log("Zoho Client ID:", process.env.ZOHO_CLIENT_ID);
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -158,6 +162,21 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
+    FacebookProvider({
+      clientId: process.env.NEXT_FACEBOOK_CLIENT_ID!,
+      clientSecret: process.env.NEXT_FACEBOOK_CLIENT_SECRET!,
+    }),
+    ZohoProvider({
+      clientId: process.env.ZOHO_CLIENT_ID!,
+      clientSecret: process.env.ZOHO_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          response_type: "code",
+        },
+      },
+    }),
+
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
@@ -172,6 +191,19 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }: any) {
+      console.log("account in signIn====>", account);
+      if (account.provider === "facebook") {
+        // Skip the mutation for Facebook during testing
+        console.log("Facebook sign-in bypassed");
+        return true;
+      }
+
+      if (account.provider === "zoho") {
+        // Skip the mutation for Facebook during testing
+        console.log("Zoho sign-in bypassed");
+        return true;
+      }
+
       const providerData = await handleProvider(account);
       console.log("provided data===>", providerData);
       if (providerData) {
@@ -185,18 +217,18 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user }: any) {
       console.log("user===>", user);
-      
+
       // During initial sign-in, set the access and refresh tokens
       if (user) {
         const userDetail = user as ISignInResponse;
         console.log("tokenfirst===>", token);
-        
+
         // Add tokens and user details to the token object
         token.access_token = userDetail.accessToken;
         token.refresh_token = userDetail.refreshToken;
         token.user = userDetail.user;
       }
-    
+
       // Ensure tokens are preserved on subsequent requests
       console.log("tokensecond===>", token);
       return token;
@@ -211,6 +243,9 @@ export const authOptions: NextAuthOptions = {
       session.user = {
         access_token: token.access_token,
         refresh_token: token.refresh_token,
+        name: token.name,
+        email: token.email,
+        image:token.picture,
         user: token.user,
       };
       console.log("session===>", session);
