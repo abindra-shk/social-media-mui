@@ -51,8 +51,6 @@ const handleProvider = async (account: any) => {
   }
 };
 
-console.log("Zoho Client ID:", process.env.ZOHO_CLIENT_ID);
-
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -60,49 +58,6 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: true,
   providers: [
-    // CredentialsProvider({
-    //   name: "credentials",
-    //   credentials: {
-    //     email: {
-    //       label: "Email",
-    //       type: "email",
-    //       placeholder: "Enter your email",
-    //     },
-    //     password: {
-    //       label: "Password",
-    //       type: "password",
-    //       placeholder: "Enter your password",
-    //     },
-    //   },
-    //   async authorize(credentials: any): Promise<any> {
-    //     await dbConnect();
-    //     console.log("credentials in authoptions", credentials);
-    //     try {
-    //       const user = await UserModel.findOne({
-    //         $or: [
-    //           { email: credentials.email },
-    //           { username: credentials.email },
-    //         ],
-    //       });
-    //       console.log("user===>", user);
-    //       if (!user) {
-    //         throw new Error("No user found with this email");
-    //       }
-
-    //       const isPasswordCorrect = await bcrypt.compare(
-    //         credentials.password,
-    //         user.password
-    //       );
-    //       if (isPasswordCorrect) {
-    //         return user;
-    //       } else {
-    //         throw new Error("Incorrect password");
-    //       }
-    //     } catch (err: any) {
-    //       throw new Error(err);
-    //     }
-    //   },
-    // }),
     CredentialsProvider({
       type: "credentials",
       credentials: {},
@@ -166,16 +121,17 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.NEXT_FACEBOOK_CLIENT_ID!,
       clientSecret: process.env.NEXT_FACEBOOK_CLIENT_SECRET!,
     }),
-    ZohoProvider({
-      clientId: process.env.ZOHO_CLIENT_ID!,
-      clientSecret: process.env.ZOHO_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          response_type: "code",
-        },
-      },
-    }),
+    // ZohoProvider({
+    //   clientId: process.env.ZOHO_CLIENT_ID!,
+    //   clientSecret: process.env.ZOHO_CLIENT_SECRET!,
+    //   authorization: {
+    //     params: {
+    //       prompt: "consent",
+    //       response_type: "code",
+    //       scope:"email"
+    //     },
+    //   },
+    // }),
 
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -184,44 +140,118 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code",
+          response_type: "token",
         },
       },
     }),
+    {
+      id: "zoho",
+      name: "Zoho",
+      type: "oauth",
+      version: "2.0",
+      params: { grant_type: "authorization_code" },
+      accessTokenUrl: "https://accounts.zoho.com/oauth/v2/token",
+      authorizationUrl: "https://accounts.zoho.com/oauth/v2/auth?response_type=code",
+      clientId: process.env.ZOHO_CLIENT_ID!,
+      clientSecret: process.env.ZOHO_CLIENT_SECRET!,
+      async profile(profile, tokens) {
+        // Customize how the profile is handled
+        return {
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          image: profile.image,
+        };
+      },
+      async requestToken(ctx: any) {
+        const { code } = ctx.query;
+        if (typeof code !== 'string') {
+          throw new Error("Authorization code is missing");
+        }
+    
+        try {
+          const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
+            method: 'POST',
+            body: new URLSearchParams({
+              client_id: process.env.ZOHO_CLIENT_ID!,
+              client_secret: process.env.ZOHO_CLIENT_SECRET!,
+              grant_type: 'authorization_code',
+              redirect_uri: process.env.ZOHO_REDIRECT_URI!,
+              code,
+            }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          });
+    
+          if (!response.ok) {
+            throw new Error(`Error fetching token: ${response.statusText}`);
+          }
+    
+          const data = await response.json();
+          return {
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token,
+          };
+        } catch (error: any) {
+          throw new Error(`Failed to exchange authorization code: ${error.message}`);
+        }
+      },
+    }
   ],
   callbacks: {
-    async signIn({ user, account, profile }: any) {
-      console.log("account in signIn====>", account);
-      if (account.provider === "facebook") {
-        // Skip the mutation for Facebook during testing
-        console.log("Facebook sign-in bypassed");
-        return true;
-      }
+    async signIn(data: any) {
+      console.log("data====>", data);
+      // const { code } = new URL(data.account.redirectUri).searchParams
+      // console.log("CODE====>", code);
 
-      if (account.provider === "zoho") {
-        // Skip the mutation for Facebook during testing
-        console.log("Zoho sign-in bypassed");
-        return true;
-      }
+      // if (account.provider === "facebook") {
+      //   // Skip the mutation for Facebook during testing
+      //   console.log("Facebook sign-in bypassed");
+      //   return true;
+      // }
 
-      const providerData = await handleProvider(account);
-      console.log("provided data===>", providerData);
-      if (providerData) {
-        user.id = providerData.id;
-        user.user = providerData.user;
-        user.accessToken = providerData.access_token;
-        user.refreshToken = providerData.refresh_token;
-        return true;
-      }
+      // if (account.provider === "zoho") {
+      //   console.log("code:", account.access_token);
+      //   try {
+      //     const response = await fetch(
+      //       "https://accounts.zoho.com/oauth/v2/token",
+      //       {
+      //         method: "POST",
+      //         headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      //         body: new URLSearchParams({
+      //           grant_type: "authorization_code",
+      //           client_id: process.env.ZOHO_CLIENT_ID!,
+      //           client_secret: process.env.ZOHO_CLIENT_SECRET!,
+      //           redirect_uri: process.env.ZOHO_REDIRECT_URI!,
+      //           code: "1000.dca6c31924f89273368fc3bd29c566c3.5fb993ad76a805e4c0ec7fbea06d6c29", // Correct parameter if needed
+      //         }),
+      //       }
+      //     );
+      //     if (!response.ok)
+      //       throw new Error(`Error fetching token: ${response.statusText}`);
+      //     const data = await response.json();
+      //     console.log("Zoho data:", data);
+      //     return true;
+      //   } catch (error) {
+      //     console.error("Zoho sign-in error:", error);
+      //     return false;
+      //   }
+      // }
+
+      // const providerData = await handleProvider(account);
+
+      // if (providerData) {
+      //   user.id = providerData.id;
+      //   user.user = providerData.user;
+      //   user.accessToken = providerData.access_token;
+      //   user.refreshToken = providerData.refresh_token;
+      //   return true;
+      // }
       return true;
     },
     async jwt({ token, user }: any) {
-      console.log("user===>", user);
-
       // During initial sign-in, set the access and refresh tokens
       if (user) {
         const userDetail = user as ISignInResponse;
-        console.log("tokenfirst===>", token);
 
         // Add tokens and user details to the token object
         token.access_token = userDetail.accessToken;
@@ -230,13 +260,11 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Ensure tokens are preserved on subsequent requests
-      console.log("tokensecond===>", token);
+
       return token;
     },
 
     async session({ session, token }: any) {
-      console.log("token===>", token);
-
       // session.user.image = token.user.profile.avatar;
       // session.user.name = token.user.userName;
       // session.user.email = token.user.email;
@@ -245,10 +273,10 @@ export const authOptions: NextAuthOptions = {
         refresh_token: token.refresh_token,
         name: token.name,
         email: token.email,
-        image:token.picture,
+        image: token.picture,
         user: token.user,
       };
-      console.log("session===>", session);
+
       return session;
     },
     // async jwt({ token, user, account }) {
