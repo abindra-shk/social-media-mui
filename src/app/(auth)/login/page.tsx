@@ -10,32 +10,61 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
-import { signIn } from "next-auth/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
+import {jwtDecode} from "jwt-decode";
+// Install this package using `npm install jwt-decode`
+import { signIn } from "next-auth/react";
 
 const Login = () => {
   const downMD = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Retrieve the authorization code from the query parameters
+    const queryParams = new URLSearchParams(window.location.search);
+    const code = queryParams.get("code");
+
+    if (code) {
+      console.log("Authorization Code:", code);
+      handleZohoTokenExchange(code);
+    }
+  }, []);
+
+  const handleZohoTokenExchange = async (code: string) => {
+    try {
+      const response = await fetch('/api/zoho', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+  
+      const data = await response.json();
+      console.log('Token Response:', data);
+  
+      if (data.access_token) {
+        const decodedToken = jwtDecode(data.id_token);
+        console.log('Decoded JWT:', decodedToken);
+  
+        router.push('/signup');
+      } else {
+        console.error('Failed to retrieve access token');
+      }
+    } catch (error) {
+      console.error('Error exchanging authorization code for token:', error);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-      callbackUrl: "/home",
-    });
-
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      // Redirect to the callback URL or home page
-      window.location.href = "/home";
-    }
+    // Your existing login logic
   };
 
   return (
@@ -105,7 +134,6 @@ const Login = () => {
               </form>
               <Divider>OR</Divider>
 
-              {/* GitHub Sign-in Button */}
               <Button
                 variant="outlined"
                 color="secondary"
@@ -159,6 +187,7 @@ const Login = () => {
               >
                 Login with Facebook
               </Button>
+
               <Button
                 color="primary"
                 variant="outlined"
@@ -172,7 +201,16 @@ const Login = () => {
                     alt="zoho"
                   />
                 }
-                onClick={() => signIn("zoho", { callbackUrl: "/home" })}
+                onClick={() => {
+                  const clientId = "1000.MRUB4RWQJMYD0CYN6JW0VLAFXP0HTZ"; // Replace with your client ID
+                  const redirectUri = "http://localhost:3000/login";
+                  const scope = "email";
+                  const responseType = "code";
+
+                  window.location.href = `https://accounts.zoho.com/oauth/v2/auth?response_type=${responseType}&client_id=${clientId}&scope=${scope}&redirect_uri=${encodeURIComponent(
+                    redirectUri
+                  )}`;
+                }}
               >
                 Login with Zoho
               </Button>

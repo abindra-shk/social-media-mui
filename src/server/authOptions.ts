@@ -144,58 +144,6 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
-    {
-      id: "zoho",
-      name: "Zoho",
-      type: "oauth",
-      version: "2.0",
-      params: { grant_type: "authorization_code" },
-      accessTokenUrl: "https://accounts.zoho.com/oauth/v2/token",
-      authorizationUrl: "https://accounts.zoho.com/oauth/v2/auth?response_type=code",
-      clientId: process.env.ZOHO_CLIENT_ID!,
-      clientSecret: process.env.ZOHO_CLIENT_SECRET!,
-      async profile(profile, tokens) {
-        // Customize how the profile is handled
-        return {
-          id: profile.id,
-          name: profile.name,
-          email: profile.email,
-          image: profile.image,
-        };
-      },
-      async requestToken(ctx: any) {
-        const { code } = ctx.query;
-        if (typeof code !== 'string') {
-          throw new Error("Authorization code is missing");
-        }
-    
-        try {
-          const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
-            method: 'POST',
-            body: new URLSearchParams({
-              client_id: process.env.ZOHO_CLIENT_ID!,
-              client_secret: process.env.ZOHO_CLIENT_SECRET!,
-              grant_type: 'authorization_code',
-              redirect_uri: process.env.ZOHO_REDIRECT_URI!,
-              code,
-            }),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          });
-    
-          if (!response.ok) {
-            throw new Error(`Error fetching token: ${response.statusText}`);
-          }
-    
-          const data = await response.json();
-          return {
-            accessToken: data.access_token,
-            refreshToken: data.refresh_token,
-          };
-        } catch (error: any) {
-          throw new Error(`Failed to exchange authorization code: ${error.message}`);
-        }
-      },
-    }
   ],
   callbacks: {
     async signIn(data: any) {
